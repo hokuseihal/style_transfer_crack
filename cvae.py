@@ -45,10 +45,10 @@ class crackDataset(torch.utils.data.Dataset):
     def __getitem__(self, item):
         return self.transformin(Image.open(os.path.join(self.rawroot,self.imglist[item]))), self.transformout(Image.open(os.path.join(self.maskroot,self.imglist[item])))
 train_loader = torch.utils.data.DataLoader(
-    crackDataset("crack_segmentation_dataset/train/images","/home/hokusei/Downloads/crack_segmentation_dataset/train/masks"),
+    crackDataset("crack_segmentation_dataset/train/images","crack_segmentation_dataset/train/masks"),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 test_loader = torch.utils.data.DataLoader(
-    crackDataset("crack_segmentation_dataset/test/images","/home/hokusei/Downloads/crack_segmentation_dataset/test/masks"),
+    crackDataset("crack_segmentation_dataset/test/images","crack_segmentation_dataset/test/masks"),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 #train_loader=torch.utils.data.DataLoader(datasets.STL10('data',download=True,transform=transforms.Compose([transforms.Resize((96,96)),transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=256,shuffle=True)
 #test_loader=torch.utils.data.DataLoader(datasets.STL10('data',download=True,transform=transforms.Compose([transforms.Resize((96,96)),transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=256,shuffle=True)
