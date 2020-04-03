@@ -44,5 +44,7 @@ class CVAE(nn.Module):
 
     def forward(self, x):
         z= self.encoder(x)
-        return self.decoder(z)
+        mu=z.mean()
+        var=z.var()
+        return self.decoder(z),var,mu
 

@@ -29,7 +29,7 @@ torch.manual_seed(args.seed)
 device = torch.device("cuda" if args.cuda else "cpu")
 #device="cpu"
 
-
+os.makedirs('results',exist_ok=True)
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 class crackDataset(torch.utils.data.Dataset):
     def __init__(self,rawroot,maskroot):
@@ -74,7 +74,8 @@ def loss_function(recon_x, x):
 
     return BCE
 loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
-loss_function=F.mse_loss
+loss_function=lambda x,y,logvar=None ,mu=None:F.mse_loss(x,y) -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) if logvar and mu else F.mse_loss(x,y)
+
 
 
 def train(epoch):
@@ -84,8 +85,8 @@ def train(epoch):
         data = data.to(device)
         target=data.to(device)
         optimizer.zero_grad()
-        recon_batch= model(data)
-        loss = loss_function(recon_batch, target)
+        recon_batch,var,mu= model(data)
+        loss = loss_function(recon_batch, target,var,mu)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -107,13 +108,13 @@ def test(epoch):
         for i, (data, target) in enumerate(test_loader):
             data = data.to(device)
             target = data.to(device)
-            recon_batch= model(data)
-            test_loss += loss_function(recon_batch, target).item()
+            recon_batch,var,mu= model(data)
+            test_loss += loss_function(recon_batch, target,var,mu).item()
             if i == 0:
                 n = min(data.size(0), 8)
-                #sample = torch.randn(8, 512, 2, 2).to(device)
-                #sample = model.decoder(sample)
-                img=torch.cat([data[:n],recon_batch[:n]]).cpu()
+                sample = torch.randn(8, 512, 8, 8).to(device)
+                sample = model.decoder(sample)
+                img=torch.cat([data[:n],recon_batch[:n],sample]).cpu()
                 save_image(img,
                            'results/result' + str(epoch) + '.png', nrow=n)
 
