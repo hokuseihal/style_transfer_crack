@@ -63,18 +63,19 @@ optimizer = optim.Adam(model.parameters())
 
 
 # Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x):
-    BCE = F.binary_cross_entropy(recon_x.view(-1), x.view(-1), reduction='mean')
-
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    #KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-
-    return BCE
-loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
+#def loss_function(recon_x, x):
+#    BCE = F.binary_cross_entropy(recon_x.view(-1), x.view(-1), reduction='mean')
+#
+#    # see Appendix B from VAE paper:
+#    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+#    # https://arxiv.org/abs/1312.6114
+#    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+#    #KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+#
+#    return BCE
+#loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
 loss_function=lambda x,y,var=None ,mu=None:F.mse_loss(x,y) +mu+(var-1)**2 if var and mu else F.mse_loss(x,y)
+loss_function=lambda x,y,var=None ,mu=None:F.mse_loss(x,y)
 
 
 
@@ -90,7 +91,7 @@ def train(epoch):
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % args.log_interval ==0 :
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader),
@@ -109,7 +110,8 @@ def test(epoch):
             data = data.to(device)
             target = data.to(device)
             recon_batch,var,mu= model(data)
-            test_loss += loss_function(recon_batch, target,var,mu).item()
+            loss= loss_function(recon_batch, target,var,mu).item()
+            test_loss+=loss
             if i == 0:
                 n = min(data.size(0), 8)
                 sample = torch.randn(8, 512, 8, 8).to(device)
