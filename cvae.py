@@ -74,7 +74,7 @@ def loss_function(recon_x, x):
 
     return BCE
 loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
-loss_function=lambda x,y,logvar=None ,mu=None:F.mse_loss(x,y) -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) if logvar and mu else F.mse_loss(x,y)
+loss_function=lambda x,y,var=None ,mu=None:F.mse_loss(x,y) +mu+(var-1)**2 if var and mu else F.mse_loss(x,y)
 
 
 
