@@ -14,7 +14,7 @@ class CVAE(nn.Module):
     def __init__(self):
         super(CVAE, self).__init__()
         self.encoder=nn.Sequential(
-            ConvBNReLU(3,32,4,2),
+            ConvBNReLU(1,32,4,2),
             ConvBNReLU(32,64,4,2),
             ConvBNReLU(64,128,4,2),
             ConvBNReLU(128,256,4,2),
@@ -30,7 +30,8 @@ class CVAE(nn.Module):
             nn.Upsample(scale_factor=2),
             ConvBNReLU(64, 32, 3),
             nn.Upsample(scale_factor=2),
-            ConvBNReLU(32, 3, 3),
+            ConvBNReLU(32, 1, 3),
+            nn.Sigmoid()
         )
 
     def reparameterize(self, mu, logvar):

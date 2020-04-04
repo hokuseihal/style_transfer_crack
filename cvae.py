@@ -37,7 +37,7 @@ class crackDataset(torch.utils.data.Dataset):
         self.maskroot=maskroot
         assert len(os.listdir(rawroot))==len(os.listdir(maskroot))
         self.imglist=os.listdir(rawroot)
-        self.transformin=transforms.Compose([transforms.Resize((256,256)),transforms.ToTensor(),transforms.Normalize((0,0,0),(1,1,1))])
+        self.transformin=transforms.Compose([transforms.Grayscale(num_output_channels=1),transforms.Resize((256,256)),transforms.ToTensor()])
         self.transformout=transforms.Compose([transforms.Grayscale(num_output_channels=1),transforms.Resize((256,256)),transforms.ToTensor()])
 
     def __len__(self):
@@ -73,9 +73,9 @@ optimizer = optim.Adam(model.parameters())
 #    #KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 #
 #    return BCE
-#loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
 loss_function=lambda x,y,var=None ,mu=None:F.mse_loss(x,y) +mu+(var-1)**2 if var and mu else F.mse_loss(x,y)
 loss_function=lambda x,y,var=None ,mu=None:F.mse_loss(x,y)
+loss_function= lambda x,y:F.binary_cross_entropy(x.view(-1),y.view(-1))
 
 
 
@@ -84,10 +84,10 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         data = data.to(device)
-        target=data.to(device)
+        target=target.to(device)
         optimizer.zero_grad()
         recon_batch,var,mu= model(data)
-        loss = loss_function(recon_batch, target,var,mu)
+        loss = loss_function(recon_batch, target)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -108,9 +108,9 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, target) in enumerate(test_loader):
             data = data.to(device)
-            target = data.to(device)
+            target = target.to(device)
             recon_batch,var,mu= model(data)
-            loss= loss_function(recon_batch, target,var,mu).item()
+            loss= loss_function(recon_batch, target).item()
             test_loss+=loss
             if i == 0:
                 n = min(data.size(0), 8)
